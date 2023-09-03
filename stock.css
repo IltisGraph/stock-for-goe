@@ -1,0 +1,38 @@
+html, body {
+    width: 100%;
+    height: 100%;
+}
+
+#header {
+    text-align: center;
+}
+
+#info {
+    text-align: center;
+}
+
+#buttons {
+    margin-top: 30px;
+    text-align: center;
+}
+.operation-buttons {
+    width: 45%;
+    height: 50px;
+}
+
+#footer {
+    margin-top: 50%;
+    text-align: center;
+}
+
+#canvas-wrapper {
+    width: 100%;
+    height: 200;
+    text-align: center;
+    margin-top: 40px;
+}
+#graph {
+    border: 1px solid black;
+    width: 90%;
+    height: 400px;
+}

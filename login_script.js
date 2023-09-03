@@ -34,6 +34,9 @@ function signIn() {
     // console.log(password);
     signInWithEmailAndPassword(auth, name, password).then((userCredential) => {
         const user = userCredential.user;
+        localStorage.setItem("user", user.uid);
+        // console.log(user)
+        // console.log(user.uid)
         console.log("logged in!");
         localStorage.setItem("login", "true");
         window.location.replace("./stocks.html")

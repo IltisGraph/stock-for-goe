@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aktienansicht!</title>
+    <link rel="stylesheet" href="stock.css">
+</head>
+<body>
+    <div id="header">
+        <h1 id="overview">Ansicht von: </h1>
+        <hr>
+    </div>
+    <div id="info">
+        <a><span id="buy-price">Kaufen:</span>| <span id="sell-price">Verkaufen:</span>| <span id="has">Im Besitz:</span> </a>
+        <div id="buttons">
+            <button id="buy" class="operation-buttons">Kaufen</button>
+            <button id="sell" class="operation-buttons">Verkaufen</button>
+        </div>
+    </div>
+    <div id="canvas-wrapper">
+        <canvas id="graph"></canvas>
+    </div>
+
+    <div id="footer">
+        Made with ❤️ in Einbeck...xD | Copyright (c) 2023
+    </div>
+    
+</body>
+<script src="stock.js" type="module"></script>
+</html>
