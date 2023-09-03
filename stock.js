@@ -38,7 +38,6 @@ const ctx = canvas.getContext("2d");
 // ctx.fill()
 
 
-
 function calc_cur_buy_price() {
     let price_list;
     
@@ -84,15 +83,27 @@ function calc_cur_sell_price() {
         }
     });
 }
-
+let has;
 function count_wallet() {
     console.log("User " + localStorage.getItem("user"));
     get(child(ref(db), "users/" + localStorage.getItem("user") + "/" + localStorage.getItem("selected").toLocaleLowerCase())).then((snapshot) => {
         if (snapshot.exists()) {
             console.log(snapshot.val());
+            has = snapshot.val();
             document.getElementById("has").innerHTML = "Im Besitz: " + snapshot.val();
         } else {
             document.writeln("Invalid User or stock!")
+        }
+    });
+}
+let money;
+function get_user_money() {
+    get(child(ref(db), "users/" + localStorage.getItem("user") + "/money")).then((snapshot) => {
+        if (snapshot.exists()) {
+            console.log(snapshot.val());
+            money = snapshot.val();
+        } else {
+            document.writeln("Invalid User or stock!");
         }
     });
 }
@@ -100,5 +111,68 @@ function count_wallet() {
 calc_cur_buy_price()
 calc_cur_sell_price()
 count_wallet()
+get_user_money()
 
 // localStorage.setItem("login", "false");
+
+
+document.getElementById("buy").onclick = function() {
+    let amount = window.prompt("Gib die Anzahl ein, die du kaufen willst!");
+    let price = window.prompt("Gib den Preis ein, zu dem du kaufen willst!");
+    if (amount * price > money) {
+        window.alert("Du hast nicht genug Geld!");
+        return;
+    } else {
+        window.alert("Wird eingefügt! " + amount * price + "ℛ abgezogen!");
+    }
+    
+    get(child(ref(db), "orders/buy_num")).then((snapshot) => {
+        if (snapshot.exists()) {
+            console.log(snapshot.val());
+            let num = snapshot.val();
+            set(ref(db, "orders/buy/" + localStorage.getItem("selected").toLocaleLowerCase() + "/" + num), {
+                name: localStorage.getItem("user"),
+                price: price,
+                amount: amount,
+                filled: 0
+            });
+            // increase buy_num
+            set(ref(db, "orders/buy_num"), num + 1);
+            //take the money
+            set(ref(db, "users/" + localStorage.getItem("user") + "/money"), money - amount * price);
+        } else {
+            console.error("buy_num does not exist!");
+        }
+    });
+
+
+}
+
+document.getElementById("sell").onclick = function() {
+    let amount = window.prompt("Gib die Anzahl ein, die du verkaufen willst!");
+    let price = window.prompt("Gib den Preis ein, zu dem du verkaufen willst!");
+    if (amount > has) {
+        window.alert("Du hast nicht genug Aktien!");
+        return;
+    } else {
+        window.alert("Wird eingefügt! Sobald es gekauft wird, landet das Geld auf deinem Konto!");
+    }
+    
+    get(child(ref(db), "orders/sell_num")).then((snapshot) => {
+        if (snapshot.exists()) {
+            console.log(snapshot.val());
+            let num = snapshot.val();
+            set(ref(db, "orders/sell/" + localStorage.getItem("selected").toLocaleLowerCase() + "/" + num), {
+                name: localStorage.getItem("user"),
+                price: price,
+                amount: amount,
+                filled: 0
+            });
+            // increase buy_num
+            set(ref(db, "orders/sell_num"), num + 1);
+            
+        } else {
+            console.error("sell_num does not exist!");
+        }
+    });
+}
