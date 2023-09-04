@@ -108,10 +108,17 @@ function get_user_money() {
     });
 }
 
-calc_cur_buy_price()
-calc_cur_sell_price()
-count_wallet()
-get_user_money()
+onValue(ref(db, "orders/sell/" + localStorage.getItem("selected").toLocaleLowerCase()), (snapshot) => {
+    calc_cur_buy_price();
+});
+onValue(ref(db, "orders/buy/" + localStorage.getItem("selected").toLocaleLowerCase()), (snapshot) => {
+    calc_cur_sell_price();
+});
+onValue(ref(db, "users/" + localStorage.getItem("user")), (snapshot) => {
+    count_wallet();
+    get_user_money();
+})
+
 
 // localStorage.setItem("login", "false");
 
@@ -125,6 +132,9 @@ document.getElementById("buy").onclick = function() {
     } else {
         window.alert("Wird eingefügt! " + amount * price + "ℛ abgezogen!");
     }
+    if (isNaN(amount) || isNaN(price)) {
+        window.alert("Error beim Parsen deiner Eingaben!");
+    }
     
     get(child(ref(db), "orders/buy_num")).then((snapshot) => {
         if (snapshot.exists()) {
@@ -132,8 +142,8 @@ document.getElementById("buy").onclick = function() {
             let num = snapshot.val();
             set(ref(db, "orders/buy/" + localStorage.getItem("selected").toLocaleLowerCase() + "/" + num), {
                 name: localStorage.getItem("user"),
-                price: price,
-                amount: amount,
+                price: parseFloat(price),
+                amount: Number(amount),
                 filled: 0,
                 stock: localStorage.getItem("selected").toLocaleLowerCase()
             });
@@ -147,6 +157,7 @@ document.getElementById("buy").onclick = function() {
     });
 
 
+
 }
 
 document.getElementById("sell").onclick = function() {
@@ -158,6 +169,9 @@ document.getElementById("sell").onclick = function() {
     } else {
         window.alert("Wird eingefügt! Sobald es gekauft wird, landet das Geld auf deinem Konto!");
     }
+    if (isNaN(amount) || isNaN(price)) {
+        window.alert("Error beim Parsen deiner Eingaben!");
+    }
     
     get(child(ref(db), "orders/sell_num")).then((snapshot) => {
         if (snapshot.exists()) {
@@ -165,8 +179,8 @@ document.getElementById("sell").onclick = function() {
             let num = snapshot.val();
             set(ref(db, "orders/sell/" + localStorage.getItem("selected").toLocaleLowerCase() + "/" + num), {
                 name: localStorage.getItem("user"),
-                price: price,
-                amount: amount,
+                price: parseFloat(price),
+                amount: Number(amount),
                 filled: 0,
                 stock: localStorage.getItem("selected").toLocaleLowerCase()
             });
@@ -177,4 +191,183 @@ document.getElementById("sell").onclick = function() {
             console.error("sell_num does not exist!");
         }
     });
+    get(child(ref(db), "users/" + localStorage.getItem("user") + "/" + localStorage.getItem("selected").toLocaleLowerCase())).then((snapshot) => {
+        let cur_stock_amount = snapshot.val();
+        set(ref(db, "users/" + localStorage.getItem("user") + "/" + localStorage.getItem("selected").toLocaleLowerCase()), cur_stock_amount - amount);
+    });
 }
+
+
+// the buy and sell transactions copied from script.js!
+function sell_transaction(sell_data, buy_data) {
+    /* processes your sell orders and adds stocks to the buyer of your order */
+    console.log("Doing a sell transaction!");
+    console.log("Sell data");
+    console.log(sell_data);
+    let sell_data_keys = Object.keys(sell_data);
+    console.log("buy data")
+    console.log(buy_data);
+    let buy_data_keys = Object.keys(buy_data);
+    
+    for (let sell_key of sell_data_keys) {
+        if (sell_data[sell_key]["name"] === localStorage.getItem("user")) {
+            let holder = buy_data[buy_data_keys[0]];
+            let max = buy_data[buy_data_keys[0]]["price"];
+            let keyholder = buy_data_keys[0];
+            for (let buy_key of buy_data_keys) {
+                if (buy_data[buy_key]["price"] > max) {
+                    max = buy_data[buy_key]["price"];
+                    holder = buy_data[buy_key];
+                    keyholder = buy_key;
+                }
+            }
+            if (holder["price"] < sell_data[sell_key]["price"]) {
+                return;
+            }
+            // give buyer stocks
+            let to_give;
+            if (sell_data[sell_key]["amount"] - sell_data[sell_key]["filled"] > holder["amount"] - holder["filled"]) {
+                to_give = holder["amount"] - holder["filled"];
+            } else {
+                to_give = sell_data[sell_key]["amount"] - sell_data[sell_key]["filled"];
+            }
+            get(child(ref(db), "users/" + holder["name"] + "/" + holder["stock"])).then((snapshot) => {
+                set(ref(db, "users/" + holder["name"] + "/" + holder["stock"]), snapshot.val() + to_give);
+            });
+            // give this user money
+            get(child(ref(db), "users/" + localStorage.getItem("user") + "/money")).then((snapshot) => {
+                set(ref(db, "users/" + localStorage.getItem("user") + "/money"), snapshot.val() + to_give * holder["price"]);
+            })
+            console.log("gave user: " + holder["name"] + " stock-amount: " + to_give);
+            // actualize both orders
+            set(ref(db, "orders/sell/" + sell_data[sell_key]["stock"] + "/" + sell_key + "/filled"), sell_data[sell_key]["filled"] + to_give);
+            if (sell_data[sell_key]["filled"] + to_give == sell_data[sell_key]["amount"]) {
+                set(ref(db, "orders/sell/" + sell_data[sell_key]["stock"] + "/" + sell_key), {
+
+                });
+            }
+            set(ref(db, "orders/buy/" + holder["stock"] + "/" + keyholder + "/filled"), holder["filled"] + to_give);
+            if (holder["filled"] + to_give == holder["amount"]) {
+                set(ref(db, "orders/buy/" + holder["stock"] + "/" + keyholder), {
+
+                });
+            }
+        }
+    }
+}
+
+function buy_transaction(sell_data, buy_data) {
+    /* processes your buy orders and adds money to the seller */
+    console.log("Doing a buy transaction!");
+    console.log("Sell data");
+    console.log(sell_data);
+    let sell_data_keys = Object.keys(sell_data);
+    console.log("buy data")
+    console.log(buy_data);
+    let buy_data_keys = Object.keys(buy_data);
+    
+    for (let buy_key of buy_data_keys) {
+        console.log("doing buy order: " + buy_key);
+        if (buy_data[buy_key]["name"] === localStorage.getItem("user")) {
+            console.log("users match!");
+            let holder = sell_data[sell_data_keys[0]];
+            let max = sell_data[sell_data_keys[0]]["price"];
+            let keyholder = sell_data_keys[0];
+            for (let sell_key of sell_data_keys) {
+                if (sell_data[sell_key]["price"] < max) {
+                    max = sell_data[sell_key]["price"];
+                    holder = sell_data[sell_key];
+                    keyholder = sell_key;
+                }
+            }
+            if (holder["price"] > buy_data[buy_key]["price"]) {
+                // price does not match
+                console.log("price does not match");
+                continue;
+            }
+            // give buyer stocks
+            let to_give;
+            if (buy_data[buy_key]["amount"] - buy_data[buy_key]["filled"] > holder["amount"] - holder["filled"]) {
+                to_give = holder["amount"] - holder["filled"];
+            } else {
+                to_give = buy_data[buy_key]["amount"] - buy_data[buy_key]["filled"];
+            }
+            console.log("moving " + to_give + " stocks");
+            get(child(ref(db), "users/" + localStorage.getItem("user") + "/" + holder["stock"])).then((snapshot) => {
+                set(ref(db, "users/" + localStorage.getItem("user") + "/" + holder["stock"]), snapshot.val() + to_give);
+            });
+            // give that user money
+            get(child(ref(db), "users/" + holder["name"] + "/money")).then((snapshot) => {
+                set(ref(db, "users/" + holder["name"] + "/money"), snapshot.val() + to_give * buy_data[buy_key]["price"]);
+            });
+            console.log("giving money");
+            // console.log("gave user: " + holder["name"] + " stock-amount: " + to_give);
+            // actualize both orders
+            set(ref(db, "orders/buy/" + buy_data[buy_key]["stock"] + "/" + buy_key + "/filled"), buy_data[buy_key]["filled"] + to_give);
+            if (buy_data[buy_key]["filled"] + to_give == buy_data[buy_key]["amount"]) {
+                set(ref(db, "orders/buy/" + buy_data[buy_key]["stock"] + "/" + buy_key), {
+
+                });
+            }
+            set(ref(db, "orders/sell/" + holder["stock"] + "/" + keyholder + "/filled"), holder["filled"] + to_give);
+            if (holder["filled"] + to_give == holder["amount"]) {
+                set(ref(db, "orders/sell/" + holder["stock"] + "/" + keyholder), {
+
+                });
+            }
+            console.log("actualized orders!");
+        }
+    }
+}
+
+onValue(ref(db, "orders/sell/fmr"), (snapshot) => {
+    let sell_data = snapshot.val()
+    console.log(sell_data);
+    get(child(ref(db), "orders/buy/fmr")).then((snapshot) => {
+        if (!snapshot.exists()) {
+            return;
+        }
+        // snapshot exists
+        let buy_data = snapshot.val()
+        console.log(buy_data);
+        sell_transaction(sell_data, buy_data);
+        buy_transaction(sell_data, buy_data)
+        
+
+
+    });
+});
+onValue(ref(db, "orders/sell/zge"), (snapshot) => {
+    let sell_data = snapshot.val()
+    console.log(sell_data);
+    get(child(ref(db), "orders/buy/zge")).then((snapshot) => {
+        if (!snapshot.exists()) {
+            return;
+        }
+        // snapshot exists
+        let buy_data = snapshot.val()
+        console.log(buy_data);
+        sell_transaction(sell_data, buy_data);
+        buy_transaction(sell_data, buy_data);
+        
+
+
+    });
+});
+
+onValue(ref(db, "orders/sell/zgx"), (snapshot) => {
+    let sell_data = snapshot.val()
+    console.log(sell_data);
+    get(child(ref(db), "orders/buy/zgx")).then((snapshot) => {
+        if (!snapshot.exists()) {
+            return;
+        }
+        // snapshot exists
+        let buy_data = snapshot.val()
+        console.log(buy_data);
+        sell_transaction(sell_data, buy_data);
+        buy_transaction(sell_data, buy_data);
+
+
+    });
+});

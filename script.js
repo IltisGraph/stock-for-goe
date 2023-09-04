@@ -29,6 +29,7 @@ const db = getDatabase();
 
 document.getElementById("zge").onclick = function() {
     localStorage.setItem("selected", "ZGE");
+    console.log("registered click on ZGE");
     window.location.href = "./stock.html";
 }
 document.getElementById("zgx").onclick = function() {
@@ -123,11 +124,12 @@ function buy_transaction(sell_data, buy_data) {
                     keyholder = sell_key;
                 }
             }
-            if (holder["price"] > buy_data[buy_key]) {
+            if (holder["price"] > buy_data[buy_key]["price"]) {
                 // price does not match
                 console.log("price does not match");
                 continue;
             }
+            console.log("Price comparison: " + holder["price"] + " | " + buy_data[buy_key]["price"]);
             // give buyer stocks
             let to_give;
             if (buy_data[buy_key]["amount"] - buy_data[buy_key]["filled"] > holder["amount"] - holder["filled"]) {
@@ -213,6 +215,16 @@ onValue(ref(db, "orders/sell/zgx"), (snapshot) => {
 
 
     });
+});
+
+
+// put user stats on top
+onValue(ref(db, "users/" + localStorage.getItem("user")), (snapshot) => {
+    const user_data = snapshot.val();
+    document.getElementById("money").innerHTML = "Geld: " + user_data["money"] + "ℛ | ";
+    document.getElementById("zge-text").innerHTML = "ZGE: " + user_data["zge"] + " | ";
+    document.getElementById("zgx-text").innerHTML = "ZGX: " + user_data["zgx"] + " | ";
+    document.getElementById("fmr-text").innerHTML = "FMR: " + user_data["fmr"];    
 });
 
 
