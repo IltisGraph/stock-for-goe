@@ -32,7 +32,7 @@ function signIn() {
     let password = document.getElementById("password").value;
     // console.log(name);
     // console.log(password);
-    signInWithEmailAndPassword(auth, name, password).then((userCredential) => {
+    signInWithEmailAndPassword(auth, name + "@r.com", password).then((userCredential) => {
         const user = userCredential.user;
         localStorage.setItem("user", user.uid);
         // console.log(user)

@@ -1,4 +1,4 @@
-if (localStorage.getItem("login") === "false") {
+if (localStorage.getItem("login") !== "true") {
     window.location.replace("./login.html");
 }
 
@@ -134,7 +134,8 @@ document.getElementById("buy").onclick = function() {
                 name: localStorage.getItem("user"),
                 price: price,
                 amount: amount,
-                filled: 0
+                filled: 0,
+                stock: localStorage.getItem("selected").toLocaleLowerCase()
             });
             // increase buy_num
             set(ref(db, "orders/buy_num"), num + 1);
@@ -166,7 +167,8 @@ document.getElementById("sell").onclick = function() {
                 name: localStorage.getItem("user"),
                 price: price,
                 amount: amount,
-                filled: 0
+                filled: 0,
+                stock: localStorage.getItem("selected").toLocaleLowerCase()
             });
             // increase buy_num
             set(ref(db, "orders/sell_num"), num + 1);
