@@ -36,6 +36,17 @@ html, body {
     text-align: center;
 }
 
+#history {
+    width: 100%;
+    height: 40px;
+    text-align: center;
+}
+#history-b {
+    margin-top: 30px;
+    width: 70%;
+    height: 100%;
+}
+
 @media only screen and (max-width:600px) {
     .stock-wrappers {
         float: none;

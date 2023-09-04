@@ -31,8 +31,25 @@ const db = getDatabase();
 const stock_name = localStorage.getItem("selected");
 document.getElementById("overview").innerHTML = "Ansicht von: " + stock_name.toUpperCase();
 
-const canvas = document.getElementById("graph");
-const ctx = canvas.getContext("2d");
+// const canvas = document.getElementById("graph");
+// const ctx = canvas.getContext("2d");
+
+// draw the graph
+// get(child(ref(db), "history/" + stock_name.toLowerCase())).then((snapshot) => {
+//     if (snapshot.exists()) {
+//         const hist_keys = Object.keys(snapshot.val());
+//         const hist_data = snapshot.val();
+//         let counter = 0;
+//         ctx.lineWidth = 5;
+//         for (let hist_key of hist_keys) {
+//             ctx.beginPath()
+//             ctx.moveTo(counter * 5, 450);
+//             ctx.lineTo(counter * 5, hist_data[hist_key]["num"]);
+//             ctx.stroke()
+//             counter++;
+//         }
+//     }
+// })
 
 // ctx.rect(0, 0, 20, 20)
 // ctx.fill()
@@ -42,11 +59,12 @@ function calc_cur_buy_price() {
     let price_list;
     
     get(child(ref(db), "orders/sell/" + stock_name.toLowerCase())).then((snapshot) => {
+        let min;
         if (snapshot.exists()) {
             price_list = snapshot.val();
             console.log(price_list);
             let keys = Object.keys(price_list);
-            let min = price_list[keys[0]]["price"];
+            min = price_list[keys[0]]["price"];
             for (let key of keys) {
                 if (price_list[key]["price"] < min) {
                     min = price_list[key]["price"];
@@ -58,6 +76,12 @@ function calc_cur_buy_price() {
             console.log("No data available + bruh moment rn");
             document.getElementById("buy-price").innerHTML = "Kaufen: -- (kein Angebot)";
         }
+        //statistik
+        get(child(ref(db), "history/" + stock_name.toLowerCase() + "/num")).then((snapshot) => {
+            const cur_count = snapshot.val();
+            set(ref(db, "history/" + stock_name.toLowerCase() + "/" + (cur_count + 1) + "/num"), min);
+            set(ref(db, "history/" + stock_name.toLowerCase() + "/num"), cur_count + 1);
+        })
     });
 }
 
@@ -222,7 +246,10 @@ function sell_transaction(sell_data, buy_data) {
                 }
             }
             if (holder["price"] < sell_data[sell_key]["price"]) {
-                return;
+                continue;
+            }
+            if (sell_data[sell_key]["filled"] + to_give == sell_data[sell_key]["amount"] || holder["filled"] + to_give == holder["amount"]) {
+                continue;
             }
             // give buyer stocks
             let to_give;
@@ -231,14 +258,15 @@ function sell_transaction(sell_data, buy_data) {
             } else {
                 to_give = sell_data[sell_key]["amount"] - sell_data[sell_key]["filled"];
             }
+            console.log("gave user: " + holder["name"] + " stock-amount: " + to_give + "from stock: " + holder["stock"]);
             get(child(ref(db), "users/" + holder["name"] + "/" + holder["stock"])).then((snapshot) => {
-                set(ref(db, "users/" + holder["name"] + "/" + holder["stock"]), snapshot.val() + to_give);
+                set(ref(db, "users/" + holder["name"] + "/" + holder["stock"]), Number(snapshot.val()) + Number(to_give));
+                console.log("User: " + holder["name"] + " now has " + snapshot.val() + to_give + " stocks of stock: " + holder["stock"]);
             });
             // give this user money
             get(child(ref(db), "users/" + localStorage.getItem("user") + "/money")).then((snapshot) => {
                 set(ref(db, "users/" + localStorage.getItem("user") + "/money"), snapshot.val() + to_give * holder["price"]);
             })
-            console.log("gave user: " + holder["name"] + " stock-amount: " + to_give);
             // actualize both orders
             set(ref(db, "orders/sell/" + sell_data[sell_key]["stock"] + "/" + sell_key + "/filled"), sell_data[sell_key]["filled"] + to_give);
             if (sell_data[sell_key]["filled"] + to_give == sell_data[sell_key]["amount"]) {
@@ -285,6 +313,9 @@ function buy_transaction(sell_data, buy_data) {
                 console.log("price does not match");
                 continue;
             }
+            if (buy_data[buy_key]["filled"] + to_give == buy_data[buy_key]["amount"] || holder["filled"] + to_give == holder["amount"]) {
+                continue;
+            }
             // give buyer stocks
             let to_give;
             if (buy_data[buy_key]["amount"] - buy_data[buy_key]["filled"] > holder["amount"] - holder["filled"]) {
@@ -323,12 +354,13 @@ function buy_transaction(sell_data, buy_data) {
 onValue(ref(db, "orders/sell/fmr"), (snapshot) => {
     let sell_data = snapshot.val()
     console.log(sell_data);
-    get(child(ref(db), "orders/buy/fmr")).then((snapshot) => {
-        if (!snapshot.exists()) {
+    if (! snapshot.exists()) return;
+    get(child(ref(db), "orders/buy/fmr")).then((snapshot_2) => {
+        if (!snapshot_2.exists()) {
             return;
         }
         // snapshot exists
-        let buy_data = snapshot.val()
+        let buy_data = snapshot_2.val()
         console.log(buy_data);
         sell_transaction(sell_data, buy_data);
         buy_transaction(sell_data, buy_data)
@@ -340,12 +372,13 @@ onValue(ref(db, "orders/sell/fmr"), (snapshot) => {
 onValue(ref(db, "orders/sell/zge"), (snapshot) => {
     let sell_data = snapshot.val()
     console.log(sell_data);
-    get(child(ref(db), "orders/buy/zge")).then((snapshot) => {
-        if (!snapshot.exists()) {
+    if (! snapshot.exists()) return;
+    get(child(ref(db), "orders/buy/zge")).then((snapshot_2) => {
+        if (!snapshot_2.exists()) {
             return;
         }
         // snapshot exists
-        let buy_data = snapshot.val()
+        let buy_data = snapshot_2.val()
         console.log(buy_data);
         sell_transaction(sell_data, buy_data);
         buy_transaction(sell_data, buy_data);
@@ -358,12 +391,13 @@ onValue(ref(db, "orders/sell/zge"), (snapshot) => {
 onValue(ref(db, "orders/sell/zgx"), (snapshot) => {
     let sell_data = snapshot.val()
     console.log(sell_data);
-    get(child(ref(db), "orders/buy/zgx")).then((snapshot) => {
-        if (!snapshot.exists()) {
+    if (! snapshot.exists()) return;
+    get(child(ref(db), "orders/buy/zgx")).then((snapshot_2) => {
+        if (!snapshot_2.exists()) {
             return;
         }
         // snapshot exists
-        let buy_data = snapshot.val()
+        let buy_data = snapshot_2.val()
         console.log(buy_data);
         sell_transaction(sell_data, buy_data);
         buy_transaction(sell_data, buy_data);
