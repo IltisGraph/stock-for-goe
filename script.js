@@ -177,9 +177,16 @@ function buy_transaction(sell_data, buy_data) {
     }
 }
 
+let on_1 = false;
+
 onValue(ref(db, "orders/sell/fmr"), (snapshot) => {
+    if (on_1) {
+        on_1 = false;
+        return;
+    }
     let sell_data = snapshot.val()
     console.log(sell_data);
+    on_1 = true;
     if (! snapshot.exists()) return;
     get(child(ref(db), "orders/buy/fmr")).then((snapshot_2) => {
         if (!snapshot_2.exists()) {
@@ -189,13 +196,21 @@ onValue(ref(db, "orders/sell/fmr"), (snapshot) => {
         let buy_data = snapshot_2.val()
         console.log(buy_data);
         sell_transaction(sell_data, buy_data);
-        buy_transaction(sell_data, buy_data)
+        buy_transaction(sell_data, buy_data);
+        
         
 
 
     });
 });
+
+let on_2 = false;
 onValue(ref(db, "orders/sell/zge"), (snapshot) => {
+    if (on_2) {
+        on_2 = false;
+        return;
+    }
+    on_2 = true;
     let sell_data = snapshot.val()
     console.log(sell_data);
     if (! snapshot.exists()) return;
@@ -214,7 +229,14 @@ onValue(ref(db, "orders/sell/zge"), (snapshot) => {
     });
 });
 
+let on_3 = false;
+
 onValue(ref(db, "orders/sell/zgx"), (snapshot) => {
+    if (on_3) {
+        on_3 = false;
+        return;
+    }
+    on_3 = true;
     let sell_data = snapshot.val()
     console.log(sell_data);
     if (! snapshot.exists()) return;

@@ -75,11 +75,13 @@ function calc_cur_buy_price() {
         } else {
             console.log("No data available + bruh moment rn");
             document.getElementById("buy-price").innerHTML = "Kaufen: -- (kein Angebot)";
+            min = 0;
         }
         //statistik
         get(child(ref(db), "history/" + stock_name.toLowerCase() + "/num")).then((snapshot) => {
             const cur_count = snapshot.val();
             set(ref(db, "history/" + stock_name.toLowerCase() + "/" + (cur_count + 1) + "/num"), min);
+            console.log("Statistic: ", min);
             set(ref(db, "history/" + stock_name.toLowerCase() + "/num"), cur_count + 1);
         })
     });
@@ -100,6 +102,10 @@ function calc_cur_sell_price() {
                 }
             }
             console.log("Min sell Price:" + min);
+            if (min === undefined) {
+                document.getElementById("sell-price").innerHTML = "Verkaufen: -- (kein Angebot)";
+                return;
+            }
             document.getElementById("sell-price").innerHTML = "Verkaufen: " + min + "ℛ";
         } else {
             console.log("No data available + bruh moment rn");
@@ -260,6 +266,8 @@ function sell_transaction(sell_data, buy_data) {
             //     continue;
             // }
             console.log("gave user: " + holder["name"] + " stock-amount: " + to_give + "from stock: " + holder["stock"]);
+            console.log("holder data:");
+            console.log(holder);
             get(child(ref(db), "users/" + holder["name"] + "/" + holder["stock"])).then((snapshot) => {
                 set(ref(db, "users/" + holder["name"] + "/" + holder["stock"]), Number(snapshot.val()) + Number(to_give));
                 console.log("User: " + holder["name"] + " now has " + snapshot.val() + to_give + " stocks of stock: " + holder["stock"]);
@@ -354,9 +362,16 @@ function buy_transaction(sell_data, buy_data) {
     }
 }
 
+let on_1 = false;
+
 onValue(ref(db, "orders/sell/fmr"), (snapshot) => {
+    if (on_1) {
+        on_1 = false;
+        return;
+    }
     let sell_data = snapshot.val()
     console.log(sell_data);
+    on_1 = true;
     if (! snapshot.exists()) return;
     get(child(ref(db), "orders/buy/fmr")).then((snapshot_2) => {
         if (!snapshot_2.exists()) {
@@ -366,13 +381,21 @@ onValue(ref(db, "orders/sell/fmr"), (snapshot) => {
         let buy_data = snapshot_2.val()
         console.log(buy_data);
         sell_transaction(sell_data, buy_data);
-        buy_transaction(sell_data, buy_data)
+        buy_transaction(sell_data, buy_data);
+        
         
 
 
     });
 });
+
+let on_2 = false;
 onValue(ref(db, "orders/sell/zge"), (snapshot) => {
+    if (on_2) {
+        on_2 = false;
+        return;
+    }
+    on_2 = true;
     let sell_data = snapshot.val()
     console.log(sell_data);
     if (! snapshot.exists()) return;
@@ -391,7 +414,14 @@ onValue(ref(db, "orders/sell/zge"), (snapshot) => {
     });
 });
 
+let on_3 = false;
+
 onValue(ref(db, "orders/sell/zgx"), (snapshot) => {
+    if (on_3) {
+        on_3 = false;
+        return;
+    }
+    on_3 = true;
     let sell_data = snapshot.val()
     console.log(sell_data);
     if (! snapshot.exists()) return;
