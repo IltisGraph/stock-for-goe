@@ -248,9 +248,7 @@ function sell_transaction(sell_data, buy_data) {
             if (holder["price"] < sell_data[sell_key]["price"]) {
                 continue;
             }
-            if (sell_data[sell_key]["filled"] + to_give == sell_data[sell_key]["amount"] || holder["filled"] + to_give == holder["amount"]) {
-                continue;
-            }
+            
             // give buyer stocks
             let to_give;
             if (sell_data[sell_key]["amount"] - sell_data[sell_key]["filled"] > holder["amount"] - holder["filled"]) {
@@ -258,6 +256,9 @@ function sell_transaction(sell_data, buy_data) {
             } else {
                 to_give = sell_data[sell_key]["amount"] - sell_data[sell_key]["filled"];
             }
+            // if (sell_data[sell_key]["filled"] + to_give == sell_data[sell_key]["amount"] || holder["filled"] + to_give == holder["amount"]) {
+            //     continue;
+            // }
             console.log("gave user: " + holder["name"] + " stock-amount: " + to_give + "from stock: " + holder["stock"]);
             get(child(ref(db), "users/" + holder["name"] + "/" + holder["stock"])).then((snapshot) => {
                 set(ref(db, "users/" + holder["name"] + "/" + holder["stock"]), Number(snapshot.val()) + Number(to_give));
@@ -313,16 +314,18 @@ function buy_transaction(sell_data, buy_data) {
                 console.log("price does not match");
                 continue;
             }
-            if (buy_data[buy_key]["filled"] + to_give == buy_data[buy_key]["amount"] || holder["filled"] + to_give == holder["amount"]) {
-                continue;
-            }
+            
             // give buyer stocks
             let to_give;
             if (buy_data[buy_key]["amount"] - buy_data[buy_key]["filled"] > holder["amount"] - holder["filled"]) {
                 to_give = holder["amount"] - holder["filled"];
             } else {
+               
                 to_give = buy_data[buy_key]["amount"] - buy_data[buy_key]["filled"];
             }
+            // if (buy_data[buy_key]["filled"] + to_give == buy_data[buy_key]["amount"] || holder["filled"] + to_give == holder["amount"]) {
+            //     continue;
+            // }
             console.log("moving " + to_give + " stocks");
             get(child(ref(db), "users/" + localStorage.getItem("user") + "/" + holder["stock"])).then((snapshot) => {
                 set(ref(db, "users/" + localStorage.getItem("user") + "/" + holder["stock"]), snapshot.val() + to_give);
