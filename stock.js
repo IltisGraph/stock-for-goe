@@ -65,13 +65,15 @@ function calc_cur_buy_price() {
             console.log(price_list);
             let keys = Object.keys(price_list);
             min = price_list[keys[0]]["price"];
+            let min_amount = price_list[keys[0]]["amount"] - price_list[keys[0]]["filled"];
             for (let key of keys) {
                 if (price_list[key]["price"] < min) {
                     min = price_list[key]["price"];
+                    min_amount = price_list[keys[0]]["amount"] - price_list[keys[0]]["filled"];
                 }
             }
             console.log("Min Price:" + min);
-            document.getElementById("buy-price").innerHTML = "Kaufen: " + min + "ℛ";
+            document.getElementById("buy-price").innerHTML = "Kaufen: " + min + "ℛ; Anzahl: " + min_amount + " ";
         } else {
             console.log("No data available + bruh moment rn");
             document.getElementById("buy-price").innerHTML = "Kaufen: -- (kein Angebot)";
@@ -96,9 +98,11 @@ function calc_cur_sell_price() {
             console.log(price_list);
             let keys = Object.keys(price_list);
             let min = price_list[keys[0]]["price"];
+            let min_amount = price_list[keys[0]]["amount"] - price_list[keys[0]]["filled"];
             for (let key of keys) {
                 if (price_list[key]["price"] > min) {
                     min = price_list[key]["price"];
+                    min_amount = price_list[keys[0]]["amount"] - price_list[keys[0]]["filled"];
                 }
             }
             console.log("Min sell Price:" + min);
@@ -106,7 +110,7 @@ function calc_cur_sell_price() {
                 document.getElementById("sell-price").innerHTML = "Verkaufen: -- (kein Angebot)";
                 return;
             }
-            document.getElementById("sell-price").innerHTML = "Verkaufen: " + min + "ℛ";
+            document.getElementById("sell-price").innerHTML = "Verkaufen: " + min + "ℛ; Anzahl: " + min_amount + " ";
         } else {
             console.log("No data available + bruh moment rn");
             document.getElementById("sell-price").innerHTML = "Verkaufen: -- (kein Angebot)";
