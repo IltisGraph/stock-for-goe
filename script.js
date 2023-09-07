@@ -6,7 +6,7 @@ if (localStorage.getItem("login") !== "true") {
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.3.1/firebase-app.js";
 import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.3.1/firebase-analytics.js";
 import { ref, set, get, getDatabase, onValue, child } from "https://www.gstatic.com/firebasejs/10.3.1/firebase-database.js";
-import { getAuth, signInWithEmailAndPassword, onAuthStateChanged  } from "https://www.gstatic.com/firebasejs/10.3.1/firebase-auth.js";
+import { getAuth, updatePassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.3.1/firebase-auth.js";
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
 
@@ -34,11 +34,13 @@ const auth = getAuth(app);
 //     console.log(auth.currentUser);
 //     // window.location.replace("./login.html");
 // }
+let user;
 
 onAuthStateChanged(auth, (user) => {
     if (user) {
       // User is signed in, see docs for a list of available properties
       // https://firebase.google.com/docs/reference/js/auth.user
+      user = auth.currentUser;
       
       // ...
     } else {
@@ -50,6 +52,32 @@ onAuthStateChanged(auth, (user) => {
 });
 
 
+document.getElementById("change-password-b").onclick = function() {
+    let new_password = window.prompt("Gib ein neues Passwort ein!");
+    // console.log(new_password);
+    // console.log(auth.currentUser);
+    updatePassword(auth.currentUser, new_password).then(() => {
+        // Update successful.
+        window.alert("Neues Passwort erfolgreich eingesetzt!");
+      }).catch((error) => {
+        // An error ocurred
+        // ...
+        window.alert("Ups... Etwas ist schiefgelaufen...☹️☹️☹️");
+        console.error(error);
+      });
+      
+}
+
+document.getElementById("logout-b").onclick = function() {
+    signOut(auth).then(() => {
+        // Sign-out successful.
+        location.reload();
+      }).catch((error) => {
+        // An error happened.
+        window.alert("Ups... Etwas ist schiefgelaufen...☹️☹️☹️");
+        console.error(error);
+      });
+}
 
 document.getElementById("zge").onclick = function() {
     localStorage.setItem("selected", "ZGE");
