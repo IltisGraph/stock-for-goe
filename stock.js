@@ -91,7 +91,7 @@ function calc_cur_buy_price() {
             for (let key of keys) {
                 if (price_list[key]["price"] < min) {
                     min = price_list[key]["price"];
-                    min_amount = price_list[keys[0]]["amount"] - price_list[keys[0]]["filled"];
+                    min_amount = price_list[key]["amount"] - price_list[key]["filled"];
                 }
             }
             console.log("Min Price:" + min);
@@ -124,7 +124,7 @@ function calc_cur_sell_price() {
             for (let key of keys) {
                 if (price_list[key]["price"] > min) {
                     min = price_list[key]["price"];
-                    min_amount = price_list[keys[0]]["amount"] - price_list[keys[0]]["filled"];
+                    min_amount = price_list[key]["amount"] - price_list[key]["filled"];
                 }
             }
             console.log("Min sell Price:" + min);
