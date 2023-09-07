@@ -6,6 +6,7 @@ if (localStorage.getItem("login") !== "true") {
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.3.1/firebase-app.js";
 import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.3.1/firebase-analytics.js";
 import { ref, set, get, getDatabase, onValue, child } from "https://www.gstatic.com/firebasejs/10.3.1/firebase-database.js";
+import { getAuth, signInWithEmailAndPassword, onAuthStateChanged  } from "https://www.gstatic.com/firebasejs/10.3.1/firebase-auth.js";
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
 
@@ -26,6 +27,29 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const analytics = getAnalytics(app);
 const db = getDatabase();
+const auth = getAuth(app);
+
+// if (auth.currentUser === null) {
+//     localStorage.setItem("login", "false");
+//     console.log(auth.currentUser);
+//     // window.location.replace("./login.html");
+// }
+
+onAuthStateChanged(auth, (user) => {
+    if (user) {
+      // User is signed in, see docs for a list of available properties
+      // https://firebase.google.com/docs/reference/js/auth.user
+      
+      // ...
+    } else {
+      // User is signed out
+      // ...
+      localStorage.setItem("login", "false");
+      window.location.replace("./login.html");
+    }
+});
+
+
 
 document.getElementById("zge").onclick = function() {
     localStorage.setItem("selected", "ZGE");
