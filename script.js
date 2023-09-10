@@ -135,6 +135,10 @@ function sell_transaction(sell_data, buy_data) {
             // if (sell_data[sell_key]["filled"] + to_give == sell_data[sell_key]["amount"] || holder["filled"] + to_give == holder["amount"]) {
             //     continue;
             // }
+            if (holder["name"] == undefined || holder["stock"] == undefined) {
+                console.warn("holder or name undefined!")
+                continue;
+            }
             get(child(ref(db), "users/" + holder["name"] + "/" + holder["stock"])).then((snapshot) => {
                 set(ref(db, "users/" + holder["name"] + "/" + holder["stock"]), Number(snapshot.val()) + Number(to_give));
             });
@@ -197,6 +201,11 @@ function buy_transaction(sell_data, buy_data) {
                 to_give = holder["amount"] - holder["filled"];
             } else {
                 to_give = buy_data[buy_key]["amount"] - buy_data[buy_key]["filled"];
+            }
+
+            if (holder["name"] == undefined || holder["stock"] == undefined) {
+                console.warn("holder or name undefined!")
+                continue;
             }
             // if (buy_data[buy_key]["filled"] + to_give == buy_data[buy_key]["amount"] || holder["filled"] + to_give == holder["amount"]) {
             //     continue;
