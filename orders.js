@@ -68,28 +68,38 @@ get(child(ref(db), "orders")).then((snapshot) => {
                 if (order["name"] === localStorage.getItem("user")) {
                     // add the order;
                     orders.push([order, "orders/sell/" + stock + "/" + key]);
-                    document.getElementById("orders").innerHTML += `<div class="order">
-                <span>Typ: verkaufen | Aktie: ${order["stock"]}</span> | <span>Anzahl: ${order["amount"] - order["filled"]}/${order["amount"]}</span> | <span>Preis: ${order["price"]}</span><br>
-                <button class="cancel-button" id="${"b" + count}">Abbrechen</button>
-            </div>`;
-                    document.getElementById("b" + count).onclick = function () {
-                        // refund stocks
+                    const currentCount = count;
+                    
+                    const orderContainer = document.createElement("div");
+                    orderContainer.className = "order";
+                    orderContainer.innerHTML = `
+                        <span>Typ: verkaufen | Aktie: ${order["stock"]}</span> |
+                        <span>Anzahl: ${order["amount"] - order["filled"]}/${order["amount"]}</span> |
+                        <span>Preis: ${order["price"]}</span><br>
+                    `;
+    
+                    const cancelBtn = document.createElement("button");
+                    cancelBtn.className = "cancel-button";
+                    cancelBtn.textContent = "Abbrechen";
+                    cancelBtn.addEventListener("click", function () {
                         let refund_stocks = order["amount"] - order["filled"];
-
-
                         console.log("Refunding: " + refund_stocks + " of stock: " + order["stock"]);
                         get(child(ref(db), "users/" + localStorage.getItem("user") + "/" + order["stock"])).then((snapshot) => {
                             set(ref(db, "users/" + localStorage.getItem("user") + "/" + order["stock"]), snapshot.val() + refund_stocks);
                             console.log("Successfully refunded stocks!");
+                            set(ref(db, "orders/sell/" + stock + "/" + key), {});
+                            location.reload();
                         });
-                        set(ref(db, "orders/sell/" + stock + "/" + key), {});
-                        location.reload()
-                    }
+                        
+                    });
+    
+                    orderContainer.appendChild(cancelBtn);
+                    document.getElementById("orders").appendChild(orderContainer);
                     count++;
                 }
             }
-        } catch(e) {
-
+        } catch (e) {
+            // Handle any errors
         }
     }
     for (let stock of stocks) {
@@ -100,26 +110,38 @@ get(child(ref(db), "orders")).then((snapshot) => {
                 if (order["name"] === localStorage.getItem("user")) {
                     // add the order;
                     orders.push([order, "orders/buy/" + stock + "/" + key]);
-                    document.getElementById("orders").innerHTML += `<div class="order">
-                <span>Typ: kaufen | Aktie: ${order["stock"]}</span> | <span>Anzahl: ${order["amount"] - order["filled"]}/${order["amount"]}</span> | <span>Preis: ${order["price"]}</span><br>
-                <button class="cancel-button" id="${"b" + count}">Abbrechen</button>
-            </div>`;
-                    document.getElementById("b" + count).onclick = function() {
-                        // delete this order and refund;
+                    const currentCount = count;
+                    
+                    const orderContainer = document.createElement("div");
+                    orderContainer.className = "order";
+                    orderContainer.innerHTML = `
+                        <span>Typ: kaufen | Aktie: ${order["stock"]}</span> |
+                        <span>Anzahl: ${order["amount"] - order["filled"]}/${order["amount"]}</span> |
+                        <span>Preis: ${order["price"]}</span><br>
+                    `;
+    
+                    const cancelBtn = document.createElement("button");
+                    cancelBtn.className = "cancel-button";
+                    cancelBtn.textContent = "Abbrechen";
+                    cancelBtn.addEventListener("click", function () {
                         let refund_money = (order["amount"] - order["filled"]) * order["price"];
-                        console.log("refunding: ", refund_money);
+                        console.log("Refunding: " + refund_money + " money");
                         get(child(ref(db), "users/" + localStorage.getItem("user") + "/money")).then((snapshot) => {
                             set(ref(db, "users/" + localStorage.getItem("user") + "/money"), snapshot.val() + refund_money);
-                            console.log("successfully refunded money!");
+                            console.log("Successfully refunded money!");
+                            set(ref(db, "orders/buy/" + stock + "/" + key), {});
+                            location.reload();
                         });
-                        set(ref(db, "orders/buy/" + stock + "/" + key), {});
-                        location.reload();
-                    }
+                        
+                    });
+    
+                    orderContainer.appendChild(cancelBtn);
+                    document.getElementById("orders").appendChild(orderContainer);
                     count++;
                 }
             }
-        } catch(e) {
-
+        } catch (e) {
+            // Handle any errors
         }
     }
 });
