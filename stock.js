@@ -4,7 +4,7 @@ if (localStorage.getItem("login") !== "true") {
 
 // Import the functions you need from the SDKs you need
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.3.1/firebase-app.js";
-import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.3.1/firebase-analytics.js";
+import { getAnalytics, logEvent } from "https://www.gstatic.com/firebasejs/10.3.1/firebase-analytics.js";
 import { ref, set, get, getDatabase, onValue, child } from "https://www.gstatic.com/firebasejs/10.3.1/firebase-database.js";
 import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.3.1/firebase-auth.js";
 // TODO: Add SDKs for Firebase products that you want to use
@@ -102,6 +102,9 @@ function calc_cur_buy_price() {
             } else {
                 document.getElementById("buy-price").innerHTML = "(Kaufen: " + min + "ℛ; Anzahl: " + min_amount + ") ";
             }
+            logEvent(analytics, "buy-price-" + localStorage.getItem("selected").toLocaleLowerCase(), {
+                price: min
+            });
         } else {
             console.log("No data available + bruh moment rn");
             document.getElementById("buy-price").innerHTML = "Kaufen: -- (kein Angebot)";
@@ -114,6 +117,7 @@ function calc_cur_buy_price() {
             console.log("Statistic: ", min);
             set(ref(db, "history/" + stock_name.toLowerCase() + "/num"), cur_count + 1);
         })
+        
     });
 }
 
@@ -145,6 +149,9 @@ function calc_cur_sell_price() {
             } else {
                 document.getElementById("sell-price").innerHTML = "(Verkaufen: " + min + "ℛ; Anzahl: " + min_amount + ") ";
             }
+            logEvent(analytics, "sell-price-" + localStorage.getItem("selected").toLocaleLowerCase(), {
+                price: min
+            })
         } else {
             console.log("No data available + bruh moment rn");
             document.getElementById("sell-price").innerHTML = "Verkaufen: -- (kein Angebot)";
@@ -196,14 +203,21 @@ document.getElementById("buy").onclick = function() {
     let price = window.prompt("Gib den Preis ein, zu dem du kaufen willst!");
     if (isNaN(amount) || isNaN(price) || price <= 0 || amount <= 0) {
         window.alert("Error beim Parsen deiner Eingaben!");
+        logEvent(analytics, "parse-error-" + localStorage.getItem("selected").toLocaleLowerCase());
         return;
     }
     if (amount * price > money) {
         window.alert("Du hast nicht genug Geld!");
+        logEvent(analytics, "not-enough-money-" + localStorage.getItem("selected").toLocaleLowerCase());
         return;
     } else {
         window.alert("Wird eingefügt! " + amount * price + "ℛ abgezogen!");
     }
+
+    logEvent(analytics, "buy-" + localStorage.getItem("selected").toLocaleLowerCase(), {
+        price: price,
+        amount: amount
+    })
     
     
     get(child(ref(db), "orders/buy_num")).then((snapshot) => {
@@ -235,14 +249,21 @@ document.getElementById("sell").onclick = function() {
     let price = window.prompt("Gib den Preis ein, zu dem du verkaufen willst!");
     if (isNaN(amount) || isNaN(price) || amount <= 0 || price <= 0) {
         window.alert("Error beim Parsen deiner Eingaben!");
+        logEvent(analytics, "parse-error-" + localStorage.getItem("selected").toLocaleLowerCase());
         return;
     }
     if (amount > has) {
         window.alert("Du hast nicht genug Aktien!");
+        logEvent(analytics, "not-enough-stocks-" + localStorage.getItem("selected").toLocaleLowerCase());
         return;
     } else {
         window.alert("Wird eingefügt! Sobald es gekauft wird, landet das Geld auf deinem Konto!");
     }
+
+    logEvent(analytics, "sell-" + localStorage.getItem("selected").toLocaleLowerCase(), {
+        price: price,
+        amount: amount
+    })
     
     
     get(child(ref(db), "orders/sell_num")).then((snapshot) => {
@@ -305,7 +326,8 @@ function sell_transaction(sell_data, buy_data) {
                 to_give = sell_data[sell_key]["amount"] - sell_data[sell_key]["filled"];
             }
             if (holder["name"] == undefined || holder["stock"] == undefined) {
-                console.warn("holder or name undefined!")
+                console.warn("holder or name undefined!");
+                logEvent(analytics, "holder-undefined");
                 continue;
             }
             // if (sell_data[sell_key]["filled"] + to_give == sell_data[sell_key]["amount"] || holder["filled"] + to_give == holder["amount"]) {
@@ -335,6 +357,7 @@ function sell_transaction(sell_data, buy_data) {
 
                 });
             }
+            logEvent(analytics, "sell-match-" + localStorage.getItem("selected").toLocaleLowerCase());
         }
     }
 }
@@ -378,7 +401,8 @@ function buy_transaction(sell_data, buy_data) {
                 to_give = buy_data[buy_key]["amount"] - buy_data[buy_key]["filled"];
             }
             if (holder["name"] == undefined || holder["stock"] == undefined) {
-                console.warn("holder or name undefined!")
+                console.warn("holder or name undefined!");
+                logEvent(analytics, "holder-undefined");
                 continue;
             }
             // if (buy_data[buy_key]["filled"] + to_give == buy_data[buy_key]["amount"] || holder["filled"] + to_give == holder["amount"]) {
@@ -408,6 +432,7 @@ function buy_transaction(sell_data, buy_data) {
                 });
             }
             console.log("actualized orders!");
+            logEvent(analytics, "buy-match-" + localStorage.getItem("selected").toLocaleLowerCase());
         }
     }
 }
