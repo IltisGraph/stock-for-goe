@@ -194,15 +194,17 @@ onValue(ref(db, "users/" + localStorage.getItem("user")), (snapshot) => {
 document.getElementById("buy").onclick = function() {
     let amount = window.prompt("Gib die Anzahl ein, die du kaufen willst!");
     let price = window.prompt("Gib den Preis ein, zu dem du kaufen willst!");
+    if (isNaN(amount) || isNaN(price) || price <= 0 || amount <= 0) {
+        window.alert("Error beim Parsen deiner Eingaben!");
+        return;
+    }
     if (amount * price > money) {
         window.alert("Du hast nicht genug Geld!");
         return;
     } else {
         window.alert("Wird eingefügt! " + amount * price + "ℛ abgezogen!");
     }
-    if (isNaN(amount) || isNaN(price)) {
-        window.alert("Error beim Parsen deiner Eingaben!");
-    }
+    
     
     get(child(ref(db), "orders/buy_num")).then((snapshot) => {
         if (snapshot.exists()) {
@@ -231,15 +233,17 @@ document.getElementById("buy").onclick = function() {
 document.getElementById("sell").onclick = function() {
     let amount = window.prompt("Gib die Anzahl ein, die du verkaufen willst!");
     let price = window.prompt("Gib den Preis ein, zu dem du verkaufen willst!");
+    if (isNaN(amount) || isNaN(price) || amount <= 0 || price <= 0) {
+        window.alert("Error beim Parsen deiner Eingaben!");
+        return;
+    }
     if (amount > has) {
         window.alert("Du hast nicht genug Aktien!");
         return;
     } else {
         window.alert("Wird eingefügt! Sobald es gekauft wird, landet das Geld auf deinem Konto!");
     }
-    if (isNaN(amount) || isNaN(price)) {
-        window.alert("Error beim Parsen deiner Eingaben!");
-    }
+    
     
     get(child(ref(db), "orders/sell_num")).then((snapshot) => {
         if (snapshot.exists()) {
