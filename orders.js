@@ -59,7 +59,7 @@ get(child(ref(db), "orders")).then((snapshot) => {
     if (! snapshot.exists()) return;
 
     const value = snapshot.val();
-    let stocks = ["fmr", "zge", "zgx"];
+    let stocks = ["fmr", "zge", "zgx", "abx", "goe", "mvd"];
     for (let stock of stocks) {
         try {
             let keys = Object.keys(value["sell"][stock]);
