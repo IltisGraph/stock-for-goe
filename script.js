@@ -4,7 +4,7 @@ if (localStorage.getItem("login") !== "true") {
 
 // Import the functions you need from the SDKs you need
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.3.1/firebase-app.js";
-import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.3.1/firebase-analytics.js";
+import { getAnalytics, logEvent } from "https://www.gstatic.com/firebasejs/10.3.1/firebase-analytics.js";
 import { ref, set, get, getDatabase, onValue, child } from "https://www.gstatic.com/firebasejs/10.3.1/firebase-database.js";
 import { getAuth, updatePassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.3.1/firebase-auth.js";
 // TODO: Add SDKs for Firebase products that you want to use
@@ -418,6 +418,97 @@ onValue(ref(db, "users/" + localStorage.getItem("user")), (snapshot) => {
     document.getElementById("abx-text").innerHTML = "ABX: " + user_data["abx"];
     document.getElementById("mvd-text").innerHTML = "MVD: " + user_data["mvd"] + " | "; 
 });
+
+// put the price in the buttons
+function fill_buttons(stock) {
+    let price_list;
+    
+    get(child(ref(db), "orders/sell/" + stock.toLowerCase())).then((snapshot) => {
+        let min;
+        if (snapshot.exists()) {
+            price_list = snapshot.val();
+            console.log(price_list);
+            let keys = Object.keys(price_list);
+            min = price_list[keys[0]]["price"];
+            let min_amount = price_list[keys[0]]["amount"] - price_list[keys[0]]["filled"];
+            let min_user = price_list[keys[0]]["name"];
+            for (let key of keys) {
+                if (price_list[key]["price"] < min) {
+                    min = price_list[key]["price"];
+                    min_amount = price_list[key]["amount"] - price_list[key]["filled"];
+                    min_user = price_list[key]["name"];
+                }
+            }
+            console.log("Min Price:" + min);
+            if (min_user != localStorage.getItem("user")) {
+                document.getElementById(stock).innerHTML += "; K: " + min + "ℛ | ";
+            } else {
+                document.getElementById(stock).innerHTML += "(K: " + min + "ℛ)";
+            }
+            logEvent(analytics, "buy-price-" + stock.toLocaleLowerCase(), {
+                price: min
+            });
+            calc_cur_sell_price(stock);
+        } else {
+            console.log("No data available + bruh moment rn");
+            document.getElementById(stock).innerHTML += "K: -- | ";
+            min = 0;
+            calc_cur_sell_price(stock);
+        }
+        //statistik
+        get(child(ref(db), "history/" + stock.toLowerCase() + "/num")).then((snapshot) => {
+            const cur_count = snapshot.val();
+            set(ref(db, "history/" + stock.toLowerCase() + "/" + (cur_count + 1) + "/num"), min);
+            console.log("Statistic: ", min);
+            set(ref(db, "history/" + stock.toLowerCase() + "/num"), cur_count + 1);
+        });
+        
+    });
+}
+
+function calc_cur_sell_price(stock) {
+    let price_list;
+    
+    get(child(ref(db), "orders/buy/" + stock.toLowerCase())).then((snapshot) => {
+        if (snapshot.exists()) {
+            price_list = snapshot.val();
+            console.log(price_list);
+            let keys = Object.keys(price_list);
+            let min = price_list[keys[0]]["price"];
+            let min_amount = price_list[keys[0]]["amount"] - price_list[keys[0]]["filled"];
+            let min_user = price_list[keys[0]]["name"];
+            for (let key of keys) {
+                if (price_list[key]["price"] > min) {
+                    min = price_list[key]["price"];
+                    min_amount = price_list[key]["amount"] - price_list[key]["filled"];
+                    min_user = price_list[key]["name"];
+                }
+            }
+            console.log("Min sell Price:" + min);
+            if (min === undefined) {
+                document.getElementById(stock).innerHTML += "V: -- ";
+                return;
+            }
+            if (min_user != localStorage.getItem("user")) {
+                document.getElementById(stock).innerHTML += "V: " + min + "ℛ";
+            } else {
+                document.getElementById(stock).innerHTML += "(V: " + min + "ℛ)";
+            }
+            logEvent(analytics, "sell-price-" + stock.toLocaleLowerCase(), {
+                price: min
+            })
+        } else {
+            console.log("No data available + bruh moment rn");
+            document.getElementById(stock).innerHTML += "V: -- ";
+        }
+    });
+}
+
+let stocks = ["fmr", "zge", "zgx", "goe", "abx", "mvd"];
+for (let stock of stocks) {
+    fill_buttons(stock);
+    
+}
 
 
 
