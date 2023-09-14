@@ -42,7 +42,7 @@ html, body {
     text-align: center;
 }
 #history-b {
-    margin-top: 30px;
+    margin-top: 130px;
     width: 70%;
     height: 100%;
 }
@@ -66,7 +66,7 @@ html, body {
     text-align: center;
 }
 #logout-b {
-    margin-top: 30px;
+    margin-top: 40px;
     width: 70%;
     height: 100%;
 }
@@ -84,6 +84,9 @@ html, body {
         margin-top: 30px;
     }
     #logout {
+        margin-top: 30px;
+    }
+    #history-b {
         margin-top: 30px;
     }
 

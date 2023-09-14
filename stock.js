@@ -513,3 +513,80 @@ onValue(ref(db, "orders/sell/zgx"), (snapshot) => {
 
     });
 });
+
+let on_4 = false;
+
+onValue(ref(db, "orders/sell/goe"), (snapshot) => {
+    if (on_4) {
+        on_4 = false;
+        return;
+    }
+    let sell_data = snapshot.val()
+    console.log(sell_data);
+    on_4 = true;
+    if (! snapshot.exists()) return;
+    get(child(ref(db), "orders/buy/goe")).then((snapshot_2) => {
+        if (!snapshot_2.exists()) {
+            return;
+        }
+        // snapshot exists
+        let buy_data = snapshot_2.val()
+        console.log(buy_data);
+        sell_transaction(sell_data, buy_data);
+        buy_transaction(sell_data, buy_data);
+        
+        
+
+
+    });
+});
+
+let on_5 = false;
+onValue(ref(db, "orders/sell/abx"), (snapshot) => {
+    if (on_5) {
+        on_5 = false;
+        return;
+    }
+    on_5 = true;
+    let sell_data = snapshot.val()
+    console.log(sell_data);
+    if (! snapshot.exists()) return;
+    get(child(ref(db), "orders/buy/abx")).then((snapshot_2) => {
+        if (!snapshot_2.exists()) {
+            return;
+        }
+        // snapshot exists
+        let buy_data = snapshot_2.val()
+        console.log(buy_data);
+        sell_transaction(sell_data, buy_data);
+        buy_transaction(sell_data, buy_data);
+        
+
+
+    });
+});
+
+let on_6 = false;
+
+onValue(ref(db, "orders/sell/mvd"), (snapshot) => {
+    if (on_6) {
+        on_6 = false;
+        return;
+    }
+    on_6 = true;
+    let sell_data = snapshot.val()
+    console.log(sell_data);
+    if (! snapshot.exists()) return;
+    get(child(ref(db), "orders/buy/mvd")).then((snapshot_2) => {
+        if (!snapshot_2.exists()) {
+            return;
+        }
+        // snapshot exists
+        let buy_data = snapshot_2.val()
+        console.log(buy_data);
+        sell_transaction(sell_data, buy_data);
+        buy_transaction(sell_data, buy_data);
+
+
+    });
+});

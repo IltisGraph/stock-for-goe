@@ -96,6 +96,19 @@ document.getElementById("fmr").onclick = function() {
 document.getElementById("history-b").onclick = function() {
     window.location.href = "./orders.html";
 }
+document.getElementById("goe").onclick = function() {
+    localStorage.setItem("selected", "GOE");
+    console.log("registered click on ZGE");
+    window.location.href = "./stock.html";
+}
+document.getElementById("abx").onclick = function() {
+    localStorage.setItem("selected", "ABX");
+    window.location.href = "./stock.html";
+}
+document.getElementById("mvd").onclick = function() {
+    localStorage.setItem("selected", "MVD");
+    window.location.href = "./stock.html";
+}
 
 
 
@@ -322,7 +335,10 @@ onValue(ref(db, "users/" + localStorage.getItem("user")), (snapshot) => {
     document.getElementById("money").innerHTML = "Geld: " + user_data["money"] + "ℛ | ";
     document.getElementById("zge-text").innerHTML = "ZGE: " + user_data["zge"] + " | ";
     document.getElementById("zgx-text").innerHTML = "ZGX: " + user_data["zgx"] + " | ";
-    document.getElementById("fmr-text").innerHTML = "FMR: " + user_data["fmr"];    
+    document.getElementById("fmr-text").innerHTML = "FMR: " + user_data["fmr"] + " | ";    
+    document.getElementById("goe-text").innerHTML = "GOE: " + user_data["goe"] + " | ";
+    document.getElementById("abx-text").innerHTML = "ABX: " + user_data["abx"];
+    document.getElementById("mvd-text").innerHTML = "MVD: " + user_data["mvd"] + " | "; 
 });
 
 
