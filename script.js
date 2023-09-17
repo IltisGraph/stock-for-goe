@@ -510,5 +510,55 @@ for (let stock of stocks) {
     
 }
 
+// the dividends
+get(child(ref(db), "users/" + localStorage.getItem("user") + "/rendite")).then((snapshot) => {
+    if (!snapshot.exists()){
+        document.writeln("broken user account...");
+        return;
+    }
+    let rendite_time = snapshot.val();
+    const cur_time = Date.now();
+    const sec_time = Math.ceil(cur_time / 1000);
+    let money = 0;
+
+    let rendite_per_stock = {"fmr":0, "zge":0, "zgx":0, "abx":0, "goe":0, "mvd":0};
+    let rendite_for_user = {"fmr":0, "zge":0, "zgx":0, "abx":0, "goe":0, "mvd":0};
+
+    get(child(ref(db), "stocks")).then((stock_snapshot) => {
+        get(child(ref(db), "users/" + localStorage.getItem("user"))).then((user_snapshot) => {
+            let keys = Object.keys(stock_snapshot.val());
+            // console.log(user_snapshot)
+            for (let stock_name of keys) {
+                if (stock_snapshot.val()[stock_name]["health"] / 10 > 0) {
+                    rendite_per_stock[stock_name] = stock_snapshot.val()[stock_name]["health"] / 10;
+                }
+            }
+            for (let stock_name of stocks) {
+                rendite_for_user[stock_name] = rendite_per_stock[stock_name] * user_snapshot.val()[stock_name];
+                console.log(user_snapshot.val()[stock_name]);
+                console.log(rendite_per_stock[stock_name])
+            }
+            console.log("rendite for user: ");
+            console.log(rendite_for_user);
+
+            while(rendite_time < sec_time) {
+                rendite_time += 60 * 60; // 1 hour?
+                for (let stock_name of stocks) {
+                    money += rendite_for_user[stock_name];
+                    // console.log(rendite_for_user[stock_name])
+                }
+            }
+            console.log("User got money from rendites: " + money);
+            set(ref(db, "users/" + localStorage.getItem("user") + "/money"), Number(user_snapshot.val()["money"]) + money);
+            set(ref(db, "users/" + localStorage.getItem("user") + "/rendite"), rendite_time);
+            console.log("User got money from rendites: " + money);
+            console.log("new rendite time: " + rendite_time);
+        })
+    })
+    
+
+    
+})
+
 
 
