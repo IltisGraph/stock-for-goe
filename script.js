@@ -410,7 +410,7 @@ onValue(ref(db, "orders/sell/mvd"), (snapshot) => {
 // put user stats on top
 onValue(ref(db, "users/" + localStorage.getItem("user")), (snapshot) => {
     const user_data = snapshot.val();
-    document.getElementById("money").innerHTML = "Geld: " + user_data["money"] + "ℛ | ";
+    document.getElementById("money").innerHTML = "Geld: <br>" + user_data["money"] + "ℛ";
     document.getElementById("zge-text").innerHTML = "ZGE: " + user_data["zge"] + " | ";
     document.getElementById("zgx-text").innerHTML = "ZGX: " + user_data["zgx"] + " | ";
     document.getElementById("fmr-text").innerHTML = "FMR: " + user_data["fmr"] + " | ";    
@@ -626,7 +626,7 @@ function count() {
     let cur_time = Date.now()
     let cur_sek_time = Math.ceil(cur_time / 1000);
     // console.log(cur_sek_time);3
-    document.getElementById("rendite-time").innerHTML = " | Rendite: " + (r_time - cur_sek_time) + " sek";
+    document.getElementById("rendite-time").innerHTML = "Rendite: <br>" + (r_time - cur_sek_time) + " sek";
     if ((r_time - cur_sek_time) <= 0) {
         dividents()
     }
