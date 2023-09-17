@@ -50,6 +50,13 @@ onAuthStateChanged(auth, (user) => {
     }
 });
 
+// check if stock is dead
+get(child(ref(db), "stocks/" + localStorage.getItem("selected").toLocaleLowerCase() + "/dead")).then((snapshot) => {
+    if (snapshot.val() == true) {
+        document.writeln("Aktie ist insolvent...");
+    }
+})
+
 const stock_name = localStorage.getItem("selected");
 document.getElementById("overview").innerHTML = "Ansicht von: " + stock_name.toUpperCase();
 

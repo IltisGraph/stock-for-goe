@@ -532,7 +532,7 @@ function dividents() {
                 // let keys = Object.keys(stock_snapshot.val());
                 // console.log(user_snapshot)
                 for (let stock_name of stocks) {
-                    if (stock_snapshot.val()[stock_name]["health"] / 10 > 0) {
+                    if (stock_snapshot.val()[stock_name]["health"] / 10 > 0 && stock_snapshot.val()["dead"] != true) {
                         rendite_per_stock[stock_name] = stock_snapshot.val()[stock_name]["health"] / 10;
                         document.getElementById(stock_name).innerHTML += " | R: " + stock_snapshot.val()[stock_name]["health"] / 10 + "ℛ";
                     } else {
@@ -559,6 +559,9 @@ function dividents() {
                 set(ref(db, "users/" + localStorage.getItem("user") + "/money"), Math.ceil(Number(user_snapshot.val()["money"]) + money));
                 set(ref(db, "users/" + localStorage.getItem("user") + "/rendite"), rendite_time);
                 console.log("User got money from rendites: " + money);
+                if (money != 0) {
+                    window.alert("Du hast " + Math.ceil(money) + "ℛ als Rendite bekommen!");
+                }
                 console.log("new rendite time: " + rendite_time);
                 r_time = rendite_time;
             });
@@ -601,6 +604,9 @@ get(child(ref(db), "stocks")).then((snapshot) => {
         for (let stock_name of stocks) {
             let new_health = update_health(val[stock_name]["health"]);
             set(ref(db, "stocks/" + stock_name + "/health"), new_health);
+            if (new_health == -10) {
+                set(ref(db, "stocks" + stock_name + "/dead"), true);
+            }
         }
         set(ref(db, "stocks/time"), val["time"] + 60 * 60);
     }
