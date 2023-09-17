@@ -510,55 +510,123 @@ for (let stock of stocks) {
     
 }
 
+let r_time = 0;
+
 // the dividends
-get(child(ref(db), "users/" + localStorage.getItem("user") + "/rendite")).then((snapshot) => {
-    if (!snapshot.exists()){
-        document.writeln("broken user account...");
-        return;
+function dividents() {
+    get(child(ref(db), "users/" + localStorage.getItem("user") + "/rendite")).then((snapshot) => {
+        if (!snapshot.exists()) {
+            document.writeln("broken user account...");
+            return;
+        }
+        let rendite_time = snapshot.val();
+        const cur_time = Date.now();
+        const sec_time = Math.ceil(cur_time / 1000);
+        let money = 0;
+
+        let rendite_per_stock = { "fmr": 0, "zge": 0, "zgx": 0, "abx": 0, "goe": 0, "mvd": 0 };
+        let rendite_for_user = { "fmr": 0, "zge": 0, "zgx": 0, "abx": 0, "goe": 0, "mvd": 0 };
+
+        get(child(ref(db), "stocks")).then((stock_snapshot) => {
+            get(child(ref(db), "users/" + localStorage.getItem("user"))).then((user_snapshot) => {
+                // let keys = Object.keys(stock_snapshot.val());
+                // console.log(user_snapshot)
+                for (let stock_name of stocks) {
+                    if (stock_snapshot.val()[stock_name]["health"] / 10 > 0) {
+                        rendite_per_stock[stock_name] = stock_snapshot.val()[stock_name]["health"] / 10;
+                        document.getElementById(stock_name).innerHTML += " | R: " + stock_snapshot.val()[stock_name]["health"] / 10 + "ℛ";
+                    } else {
+                        console.log(stock_name);
+                        document.getElementById(stock_name).innerHTML += " | R: 0ℛ";
+                    }
+                }
+                for (let stock_name of stocks) {
+                    rendite_for_user[stock_name] = Math.ceil(rendite_per_stock[stock_name] * user_snapshot.val()[stock_name]);
+                    // console.log(user_snapshot.val()[stock_name]);
+                    // console.log(rendite_per_stock[stock_name])
+                }
+                console.log("rendite for user: ");
+                console.log(rendite_for_user);
+
+                while (rendite_time < sec_time) {
+                    rendite_time += 60 * 60; // 1 hour?
+                    for (let stock_name of stocks) {
+                        money += rendite_for_user[stock_name];
+                        // console.log(rendite_for_user[stock_name])
+                    }
+                }
+                console.log("User got money from rendites: " + money);
+                set(ref(db, "users/" + localStorage.getItem("user") + "/money"), Math.ceil(Number(user_snapshot.val()["money"]) + money));
+                set(ref(db, "users/" + localStorage.getItem("user") + "/rendite"), rendite_time);
+                console.log("User got money from rendites: " + money);
+                console.log("new rendite time: " + rendite_time);
+                r_time = rendite_time;
+            });
+        });
+
+
+
+    });
+}
+dividents()
+
+// the simulation
+
+function update_health(previous_health) {
+    let add = 0;
+    let r_num = Math.random() * 100;
+    if (r_num <= 25) {
+        add = 1;
     }
-    let rendite_time = snapshot.val();
+    if (25 < r_num && r_num< 47) {
+        add = -1;
+    }
+    let out = previous_health + add;
+    if (out > 10) {
+        out = 10;
+    }
+    if (out < -10) {
+        out = -10;
+    }
+    return out;
+
+}
+
+get(child(ref(db), "stocks")).then((snapshot) => {
     const cur_time = Date.now();
     const sec_time = Math.ceil(cur_time / 1000);
-    let money = 0;
+    const val = snapshot.val();
+    if (sec_time > val["time"]) {
+        logEvent(analytics, "health_update");
+        for (let stock_name of stocks) {
+            let new_health = update_health(val[stock_name]["health"]);
+            set(ref(db, "stocks/" + stock_name + "/health"), new_health);
+        }
+        set(ref(db, "stocks/time"), val["time"] + 60 * 60);
+    }
+    // change the color of the buttons
+    console.log("changing button colors");
+    for (let stock_name of stocks) {
+        if (val[stock_name]["health"] >= 0) {
+            document.getElementById(stock_name).style = "background-color: green;";
+        } else {
+            document.getElementById(stock_name).style = "background-color: red;";
+        }
+    }
+});
 
-    let rendite_per_stock = {"fmr":0, "zge":0, "zgx":0, "abx":0, "goe":0, "mvd":0};
-    let rendite_for_user = {"fmr":0, "zge":0, "zgx":0, "abx":0, "goe":0, "mvd":0};
+function count() {
+    setTimeout(count, 1000);
+    let cur_time = Date.now()
+    let cur_sek_time = Math.ceil(cur_time / 1000);
+    // console.log(cur_sek_time);3
+    document.getElementById("rendite-time").innerHTML = " | Rendite: " + (r_time - cur_sek_time) + " sek";
+    if ((r_time - cur_sek_time) <= 0) {
+        dividents()
+    }
+}
 
-    get(child(ref(db), "stocks")).then((stock_snapshot) => {
-        get(child(ref(db), "users/" + localStorage.getItem("user"))).then((user_snapshot) => {
-            let keys = Object.keys(stock_snapshot.val());
-            // console.log(user_snapshot)
-            for (let stock_name of keys) {
-                if (stock_snapshot.val()[stock_name]["health"] / 10 > 0) {
-                    rendite_per_stock[stock_name] = stock_snapshot.val()[stock_name]["health"] / 10;
-                }
-            }
-            for (let stock_name of stocks) {
-                rendite_for_user[stock_name] = rendite_per_stock[stock_name] * user_snapshot.val()[stock_name];
-                console.log(user_snapshot.val()[stock_name]);
-                console.log(rendite_per_stock[stock_name])
-            }
-            console.log("rendite for user: ");
-            console.log(rendite_for_user);
-
-            while(rendite_time < sec_time) {
-                rendite_time += 60 * 60; // 1 hour?
-                for (let stock_name of stocks) {
-                    money += rendite_for_user[stock_name];
-                    // console.log(rendite_for_user[stock_name])
-                }
-            }
-            console.log("User got money from rendites: " + money);
-            set(ref(db, "users/" + localStorage.getItem("user") + "/money"), Number(user_snapshot.val()["money"]) + money);
-            set(ref(db, "users/" + localStorage.getItem("user") + "/rendite"), rendite_time);
-            console.log("User got money from rendites: " + money);
-            console.log("new rendite time: " + rendite_time);
-        })
-    })
-    
-
-    
-})
+setTimeout(count, 1000);
 
 
 
