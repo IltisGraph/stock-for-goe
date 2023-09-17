@@ -608,7 +608,7 @@ get(child(ref(db), "stocks")).then((snapshot) => {
                 set(ref(db, "stocks" + stock_name + "/dead"), true);
             }
         }
-        set(ref(db, "stocks/time"), val["time"] + 60 * 60);
+        set(ref(db, "stocks/time"), val["time"] + 60 * 10);
     }
     // change the color of the buttons
     console.log("changing button colors");
