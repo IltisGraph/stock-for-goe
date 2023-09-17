@@ -441,9 +441,9 @@ function fill_buttons(stock) {
             }
             console.log("Min Price:" + min);
             if (min_user != localStorage.getItem("user")) {
-                document.getElementById(stock).innerHTML += "; K: " + min + "ℛ | ";
+                document.getElementById(stock).innerHTML += " |  K: " + min + "ℛ | ";
             } else {
-                document.getElementById(stock).innerHTML += "(K: " + min + "ℛ)";
+                document.getElementById(stock).innerHTML += " | (K: " + min + "ℛ) | ";
             }
             logEvent(analytics, "buy-price-" + stock.toLocaleLowerCase(), {
                 price: min
@@ -534,10 +534,10 @@ function dividents() {
                 for (let stock_name of stocks) {
                     if (stock_snapshot.val()[stock_name]["health"] / 10 > 0 && stock_snapshot.val()["dead"] != true) {
                         rendite_per_stock[stock_name] = stock_snapshot.val()[stock_name]["health"] / 10;
-                        document.getElementById(stock_name).innerHTML += " | R: " + stock_snapshot.val()[stock_name]["health"] / 10 + "ℛ";
+                        document.getElementById(stock_name + "-rendite").innerHTML = " | R: " + stock_snapshot.val()[stock_name]["health"] / 10 + "ℛ";
                     } else {
                         console.log(stock_name);
-                        document.getElementById(stock_name).innerHTML += " | R: 0ℛ";
+                        document.getElementById(stock_name + "-rendite").innerHTML = " | R: 0ℛ";
                     }
                 }
                 for (let stock_name of stocks) {
