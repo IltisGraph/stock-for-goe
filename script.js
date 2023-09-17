@@ -614,6 +614,8 @@ function calc_health() {
             }
             set(ref(db, "stocks/time"), val["time"] + 60 * 10);
             h_time = val["time"] + 60 * 10;
+        } else {
+            h_time = val["time"];
         }
         // change the color of the buttons
         console.log("changing button colors");
