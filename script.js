@@ -595,31 +595,52 @@ function update_health(previous_health) {
 
 }
 
-get(child(ref(db), "stocks")).then((snapshot) => {
-    const cur_time = Date.now();
-    const sec_time = Math.ceil(cur_time / 1000);
-    const val = snapshot.val();
-    if (sec_time > val["time"]) {
-        logEvent(analytics, "health_update");
+let h_time = 0;
+
+function calc_health() {
+
+    get(child(ref(db), "stocks")).then((snapshot) => {
+        const cur_time = Date.now();
+        const sec_time = Math.ceil(cur_time / 1000);
+        const val = snapshot.val();
+        if (sec_time > val["time"]) {
+            logEvent(analytics, "health_update");
+            for (let stock_name of stocks) {
+                let new_health = update_health(val[stock_name]["health"]);
+                set(ref(db, "stocks/" + stock_name + "/health"), new_health);
+                if (new_health == -10) {
+                    set(ref(db, "stocks" + stock_name + "/dead"), true);
+                }
+            }
+            set(ref(db, "stocks/time"), val["time"] + 60 * 10);
+            h_time = val["time"] + 60 * 10;
+        }
+        // change the color of the buttons
+        console.log("changing button colors");
         for (let stock_name of stocks) {
-            let new_health = update_health(val[stock_name]["health"]);
-            set(ref(db, "stocks/" + stock_name + "/health"), new_health);
-            if (new_health == -10) {
-                set(ref(db, "stocks" + stock_name + "/dead"), true);
+            if (val[stock_name]["health"] >= 5) {
+                document.getElementById(stock_name).style = "background-color: green;";
+            } else if (val[stock_name]["health"] <= -5) {
+                document.getElementById(stock_name).style = "background-color: red;";
+            } else {
+                document.getElementById(stock_name).style = "background-color: lightgray;";
             }
         }
-        set(ref(db, "stocks/time"), val["time"] + 60 * 10);
+    });
+}
+
+calc_health()
+
+function health_timeout() {
+    setTimeout(health_timeout, 1000 * 10);
+    let cur_time = Date.now()
+    let cur_sek_time = Math.ceil(cur_time / 1000);
+    if ((h_time - cur_sek_time) <= 0) {
+        calc_health();
     }
-    // change the color of the buttons
-    console.log("changing button colors");
-    for (let stock_name of stocks) {
-        if (val[stock_name]["health"] >= 0) {
-            document.getElementById(stock_name).style = "background-color: green;";
-        } else {
-            document.getElementById(stock_name).style = "background-color: red;";
-        }
-    }
-});
+}
+
+setTimeout(health_timeout, 1000 * 10);
 
 function count() {
     setTimeout(count, 1000);
