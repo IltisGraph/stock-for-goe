@@ -109,6 +109,20 @@ document.getElementById("mvd").onclick = function() {
     localStorage.setItem("selected", "MVD");
     window.location.href = "./stock.html";
 }
+document.getElementById("igg").onclick = function() {
+    localStorage.setItem("selected", "IGG");
+    // console.log("registered click on ZGE");
+    window.location.href = "./stock.html";
+}
+document.getElementById("rel").onclick = function() {
+    localStorage.setItem("selected", "REL");
+    window.location.href = "./stock.html";
+}
+document.getElementById("fms").onclick = function() {
+    localStorage.setItem("selected", "FMS");
+    window.location.href = "./stock.html";
+}
+
 
 
 
@@ -405,6 +419,83 @@ onValue(ref(db, "orders/sell/mvd"), (snapshot) => {
     });
 });
 
+let on_7 = false;
+
+onValue(ref(db, "orders/sell/igg"), (snapshot) => {
+    if (on_7) {
+        on_7 = false;
+        return;
+    }
+    let sell_data = snapshot.val()
+    console.log(sell_data);
+    on_7 = true;
+    if (! snapshot.exists()) return;
+    get(child(ref(db), "orders/buy/igg")).then((snapshot_2) => {
+        if (!snapshot_2.exists()) {
+            return;
+        }
+        // snapshot exists
+        let buy_data = snapshot_2.val()
+        console.log(buy_data);
+        sell_transaction(sell_data, buy_data);
+        buy_transaction(sell_data, buy_data);
+        
+        
+
+
+    });
+});
+
+let on_8 = false;
+onValue(ref(db, "orders/sell/fms"), (snapshot) => {
+    if (on_8) {
+        on_8 = false;
+        return;
+    }
+    on_8 = true;
+    let sell_data = snapshot.val()
+    console.log(sell_data);
+    if (! snapshot.exists()) return;
+    get(child(ref(db), "orders/buy/fms")).then((snapshot_2) => {
+        if (!snapshot_2.exists()) {
+            return;
+        }
+        // snapshot exists
+        let buy_data = snapshot_2.val()
+        console.log(buy_data);
+        sell_transaction(sell_data, buy_data);
+        buy_transaction(sell_data, buy_data);
+        
+
+
+    });
+});
+
+let on_9 = false;
+
+onValue(ref(db, "orders/sell/rel"), (snapshot) => {
+    if (on_9) {
+        on_9 = false;
+        return;
+    }
+    on_9 = true;
+    let sell_data = snapshot.val()
+    console.log(sell_data);
+    if (! snapshot.exists()) return;
+    get(child(ref(db), "orders/buy/rel")).then((snapshot_2) => {
+        if (!snapshot_2.exists()) {
+            return;
+        }
+        // snapshot exists
+        let buy_data = snapshot_2.val()
+        console.log(buy_data);
+        sell_transaction(sell_data, buy_data);
+        buy_transaction(sell_data, buy_data);
+
+
+    });
+});
+
 
 
 // put user stats on top
@@ -415,8 +506,11 @@ onValue(ref(db, "users/" + localStorage.getItem("user")), (snapshot) => {
     document.getElementById("zgx-text").innerHTML = "ZGX: " + user_data["zgx"] + " | ";
     document.getElementById("fmr-text").innerHTML = "FMR: " + user_data["fmr"] + " | ";    
     document.getElementById("goe-text").innerHTML = "GOE: " + user_data["goe"] + " | ";
-    document.getElementById("abx-text").innerHTML = "ABX: " + user_data["abx"];
-    document.getElementById("mvd-text").innerHTML = "MVD: " + user_data["mvd"] + " | "; 
+    document.getElementById("abx-text").innerHTML = "ABX: " + user_data["abx"] + " | ";
+    document.getElementById("mvd-text").innerHTML = "MVD: " + user_data["mvd"] + " | ";
+    document.getElementById("igg-text").innerHTML = "IGG: " + user_data["igg"] + " | ";
+    document.getElementById("rel-text").innerHTML = "REL: " + user_data["rel"] + " | ";
+    document.getElementById("fms-text").innerHTML = "FMS: " + user_data["fms"]; 
 });
 
 // put the price in the buttons
@@ -451,7 +545,7 @@ function fill_buttons(stock) {
             calc_cur_sell_price(stock);
         } else {
             console.log("No data available + bruh moment rn");
-            document.getElementById(stock).innerHTML += "K: -- | ";
+            document.getElementById(stock).innerHTML += " | K: -- | ";
             min = 0;
             calc_cur_sell_price(stock);
         }
@@ -504,7 +598,7 @@ function calc_cur_sell_price(stock) {
     });
 }
 
-let stocks = ["fmr", "zge", "zgx", "goe", "abx", "mvd"];
+let stocks = ["fmr", "zge", "zgx", "goe", "abx", "mvd", "igg", "fms", "rel"];
 for (let stock of stocks) {
     fill_buttons(stock);
     
@@ -524,8 +618,8 @@ function dividents() {
         const sec_time = Math.ceil(cur_time / 1000);
         let money = 0;
 
-        let rendite_per_stock = { "fmr": 0, "zge": 0, "zgx": 0, "abx": 0, "goe": 0, "mvd": 0 };
-        let rendite_for_user = { "fmr": 0, "zge": 0, "zgx": 0, "abx": 0, "goe": 0, "mvd": 0 };
+        let rendite_per_stock = { "fmr": 0, "zge": 0, "zgx": 0, "abx": 0, "goe": 0, "mvd": 0, "igg":0, "fms":0, "rel":0 };
+        let rendite_for_user = { "fmr": 0, "zge": 0, "zgx": 0, "abx": 0, "goe": 0, "mvd": 0, "igg":0, "fms":0, "rel":0 };
 
         get(child(ref(db), "stocks")).then((stock_snapshot) => {
             get(child(ref(db), "users/" + localStorage.getItem("user"))).then((user_snapshot) => {
