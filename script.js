@@ -549,7 +549,7 @@ function dividents() {
                 console.log(rendite_for_user);
 
                 while (rendite_time < sec_time) {
-                    rendite_time += 60 * 60; // 1 hour?
+                    rendite_time += 60 * 60 * 6; // 6 hours?
                     for (let stock_name of stocks) {
                         money += rendite_for_user[stock_name];
                         // console.log(rendite_for_user[stock_name])
@@ -609,7 +609,7 @@ function calc_health() {
                 let new_health = update_health(val[stock_name]["health"]);
                 set(ref(db, "stocks/" + stock_name + "/health"), new_health);
                 if (new_health == -10) {
-                    set(ref(db, "stocks" + stock_name + "/dead"), true);
+                    set(ref(db, "stocks/" + stock_name + "/dead"), true);
                 }
             }
             set(ref(db, "stocks/time"), val["time"] + 60 * 10);
