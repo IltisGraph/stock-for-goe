@@ -643,7 +643,7 @@ function dividents() {
                 console.log(rendite_for_user);
 
                 while (rendite_time < sec_time) {
-                    rendite_time += 60 * 60 * 6; // 6 hours?
+                    rendite_time += 60 * 60; // 6 hours?
                     for (let stock_name of stocks) {
                         money += rendite_for_user[stock_name];
                         // console.log(rendite_for_user[stock_name])
