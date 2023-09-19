@@ -297,6 +297,12 @@ document.getElementById("sell").onclick = function() {
     });
 }
 
+function ev(data) {
+    set(ref(db, "events/" + Date.now()), data);
+}
+
+ev({type:"stockLoad", user:localStorage.getItem("user"), stock:localStorage.getItem("selected")});
+
 
 // the buy and sell transactions copied from script.js!
 function sell_transaction(sell_data, buy_data) {
@@ -348,6 +354,8 @@ function sell_transaction(sell_data, buy_data) {
                 console.log("User: " + holder["name"] + " now has " + snapshot.val() + to_give + " stocks of stock: " + holder["stock"]);
             });
             // give this user money
+            ev({type:"buy", user:holder["name"], stock:holder["stock"]});
+            ev({type:"sell", user:localStorage.getItem("user"), stock:sell_data[sell_key]["stock"]});
             get(child(ref(db), "users/" + localStorage.getItem("user") + "/money")).then((snapshot) => {
                 set(ref(db, "users/" + localStorage.getItem("user") + "/money"), snapshot.val() + to_give * holder["price"]);
             })
@@ -420,6 +428,8 @@ function buy_transaction(sell_data, buy_data) {
                 set(ref(db, "users/" + localStorage.getItem("user") + "/" + holder["stock"]), snapshot.val() + to_give);
             });
             // give that user money
+            ev({type:"sell", user:holder["name"], stock:holder["stock"]});
+            ev({type:"buy", user:localStorage.getItem("user"), stock:buy_data[buy_key]["stock"]});
             get(child(ref(db), "users/" + holder["name"] + "/money")).then((snapshot) => {
                 set(ref(db, "users/" + holder["name"] + "/money"), snapshot.val() + to_give * buy_data[buy_key]["price"]);
             });
