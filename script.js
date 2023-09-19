@@ -658,6 +658,8 @@ function dividents() {
                 }
                 console.log("new rendite time: " + rendite_time);
                 r_time = rendite_time;
+                setTimeout(count, 1000);
+
             });
         });
 
@@ -739,17 +741,18 @@ function health_timeout() {
 setTimeout(health_timeout, 1000 * 10);
 
 function count() {
-    setTimeout(count, 1000);
     let cur_time = Date.now()
     let cur_sek_time = Math.ceil(cur_time / 1000);
     // console.log(cur_sek_time);3
     document.getElementById("rendite-time").innerHTML = "Rendite: <br>" + (r_time - cur_sek_time) + " sek";
     if ((r_time - cur_sek_time) <= 0) {
-        dividents()
+        dividents();
+        return;
     }
+    setTimeout(count, 1000);
+
 }
 
-setTimeout(count, 1000);
 
 
 
