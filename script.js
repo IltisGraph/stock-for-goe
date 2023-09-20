@@ -179,8 +179,8 @@ function sell_transaction(sell_data, buy_data) {
             get(child(ref(db), "users/" + localStorage.getItem("user") + "/money")).then((snapshot) => {
                 set(ref(db, "users/" + localStorage.getItem("user") + "/money"), snapshot.val() + to_give * holder["price"]);
             })
-            ev({type:"buy", user:holder["name"], stock:holder["stock"]});
-            ev({type:"sell", user:localStorage.getItem("user"), stock:sell_data[sell_key]["stock"]});
+            ev({type:"buy", user:holder["name"], stock:holder["stock"], money:holder["price"]});
+            ev({type:"sell", user:localStorage.getItem("user"), stock:sell_data[sell_key]["stock"], money:sell_data[sell_key]["price"]});
             console.log("gave user: " + holder["name"] + " stock-amount: " + to_give);
             // actualize both orders
             set(ref(db, "orders/sell/" + sell_data[sell_key]["stock"] + "/" + sell_key + "/filled"), sell_data[sell_key]["filled"] + to_give);
@@ -254,8 +254,8 @@ function buy_transaction(sell_data, buy_data) {
                 set(ref(db, "users/" + holder["name"] + "/money"), snapshot.val() + to_give * buy_data[buy_key]["price"]);
             });
 
-            ev({type:"sell", user:holder["name"], stock:holder["stock"]});
-            ev({type:"buy", user:localStorage.getItem("user"), stock:buy_data[buy_key]["stock"]});
+            ev({type:"sell", user:holder["name"], stock:holder["stock"], money:holder["price"]});
+            ev({type:"buy", user:localStorage.getItem("user"), stock:buy_data[buy_key]["stock"], money:buy_data[buy_key]["price"]});
             console.log("giving money");
             // console.log("gave user: " + holder["name"] + " stock-amount: " + to_give);
             // actualize both orders
@@ -665,6 +665,7 @@ function dividents() {
                 set(ref(db, "users/" + localStorage.getItem("user") + "/rendite"), rendite_time);
                 console.log("User got money from rendites: " + money);
                 if (money != 0) {
+                    ev({type:"dividents", user:localStorage.getItem("user"), money:Math.ceil(money)});
                     window.alert("Du hast " + Math.ceil(money) + "ℛ als Rendite bekommen!");
                 }
                 console.log("new rendite time: " + rendite_time);
@@ -715,6 +716,7 @@ function calc_health() {
             for (let stock_name of stocks) {
                 let new_health = update_health(val[stock_name]["health"]);
                 set(ref(db, "stocks/" + stock_name + "/health"), new_health);
+                ev({type:"health", stock:stock_name, health:new_health});
                 if (new_health == -10) {
                     set(ref(db, "stocks/" + stock_name + "/dead"), true);
                 }
